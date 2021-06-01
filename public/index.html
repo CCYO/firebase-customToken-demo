@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入／註冊</title>
+    <script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-storage.js"></script>
+
+    
+</head>
+<body>
+    <h1>登入／註冊</h1>
+    <form method="POST" action="/login">
+        【登入】<br>
+        email: <input id="" type="text" name="email">
+        password: <input type="text" name="password">
+        <input type="submit">
+    </form>
+    <input type="file" id="go">
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyAqLRc-D80zLAIjZRQ5sX3WRb52soUDXzE",
+            authDomain: "fir-0423.firebaseapp.com",
+            projectId: "fir-0423",
+            storageBucket: "fir-0423.appspot.com",
+            messagingSenderId: "473734336033",
+            appId: "1:473734336033:web:1a7269ebd4802182ab1d60",
+            measurementId: "G-7G98FXYCRJ"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const token = Cookies.get('firebaseCustomToken')
+        console.log("token ===> ", token)
+        $("#go").change(e => {
+            firebase.auth().signInWithCustomToken(token)
+                .then((userCredential) => {
+                    console.log('userCredential ==> ', userCredential)
+                    console.log('userCredential ==> ', userCredential.user.uid)
+                })
+                .then( _ => {
+                    let file = e.target.files[0]
+                    let storage = firebase.storage().ref()
+                    let uploadTask = storage
+                    // 相對root的位置
+                    .child(`test/${file.name}`)
+                    .put(file)
+                    uploadTask.on(
+                        "state_changed",
+                        function(snapshot){ 
+                            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            console.log("Upload is " + progress + "% done");
+                        },
+                        function(err){
+                            console.log(err)
+                        },
+                        function(){
+                            uploadTask.snapshot.ref
+                            .getDownloadURL()
+                            .then(downloadURL => console.log(downloadURL))
+                            .catch(e => console.log(e))
+                        })
+                })
+                .catch(err => {
+                    var errorCode = err.code;
+                    var errorMessage = err.message;
+                    console.log("errorCode ==> ", errorCode)
+                    console.log("errorMessage ==> ", errorMessage)
+                    console.log('err ==> ', err)
+                })
+        })
+    </script>
+</body>
+</html>
